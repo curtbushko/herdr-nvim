@@ -248,7 +248,8 @@ T.test("init: setup supports custom icons, disabling, and restoring defaults", f
   vim.api.nvim_win_close(0, true)
   hn.setup({ icons = { statusline = "" } })
   T.eq(hn.statusline(), "1")
-  T.eq(ui._callout("note")[1][2][1], "💬 note", "omitted icons use defaults")
+  T.eq(hn.config.icons.comment, " ", "default includes its trailing space")
+  T.eq(ui._callout("note")[1][2][1], " note", "omitted icons use defaults")
   hn.setup({ icons = false })
   T.eq(hn.statusline(), "1")
   T.eq(ui._callout("note")[1][2][1], "note")
@@ -262,7 +263,7 @@ T.test("init: setup supports custom icons, disabling, and restoring defaults", f
   vim.api.nvim_win_close(0, true)
   hn.setup({ icons = true })
   T.eq(hn.statusline(), "● 1")
-  T.eq(ui._callout("note")[1][2][1], "💬 note")
+  T.eq(ui._callout("note")[1][2][1], " note")
 end)
 
 T.test("init: setup rejects invalid icon values", function()

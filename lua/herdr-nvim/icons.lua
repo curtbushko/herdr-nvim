@@ -1,6 +1,6 @@
 local M = {}
 
-M.defaults = { comment = "💬", sign = "▌", statusline = "●" }
+M.defaults = { comment = " ", sign = "▌", statusline = "●" }
 local current = vim.deepcopy(M.defaults)
 
 function M.resolve(value)
@@ -28,7 +28,8 @@ end
 
 function M.prefix(key)
   local icon = current[key]
-  return icon == "" and "" or icon .. " "
+  if icon == "" or icon:sub(-1) == " " then return icon end
+  return icon .. " "
 end
 
 return M

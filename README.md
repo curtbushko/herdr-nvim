@@ -217,14 +217,15 @@ require("herdr-nvim").setup({
   keymaps = true,           -- set false to define your own
   clear_after_send = true,  -- comments are ephemeral by design
   icons = {
-    comment = "💬",        -- callout and comment-list title
+    comment = " ",        -- callout and comment-list title (Nerd Font)
     sign = "▌",            -- sign-column rail (at most two display cells)
     statusline = "●",      -- pending-comment indicator
   },
 })
 ```
 
-Override any icon with a string (including Nerd Font glyphs). Omitted keys
+The default comment icon requires a Nerd Font. Override any icon with a
+string; a trailing space is preserved without adding another. Omitted keys
 use the defaults; `""` hides an individual icon. Set `icons = false` to hide
 all three, or `icons = true` to restore defaults. Disabling icons keeps the
 callout text, line tint, and statusline count. New decorations use the updated
