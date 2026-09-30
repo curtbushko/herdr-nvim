@@ -226,6 +226,52 @@ T.test("init: statusline reflects pending comment count", function()
   T.eq(hn.statusline(), "● 2")
 end)
 
+T.test("init: setup supports custom icons, disabling, and restoring defaults", function()
+  local ui = require("herdr-nvim.ui")
+  comments.clear()
+  local b = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(b, 0, -1, false, { "x" })
+  local id = comments.add(b, 1, 1, "note")
+  hn.setup({ keymaps = false, icons = { comment = "C", sign = ">", statusline = "S" } })
+  T.eq(hn.statusline(), "S 1")
+  T.eq(ui._callout("note")[1][2][1], "C note")
+  ui.decorate(id)
+  local marks = vim.api.nvim_buf_get_extmarks(b, comments.ns, 0, -1, { details = true })
+  local sign
+  for _, m in ipairs(marks) do
+    if m[4].sign_text then sign = vim.trim(m[4].sign_text) end
+  end
+  T.eq(sign, ">")
+  ui.undecorate(id)
+  ui.comment_list({ edit = function() end, delete = function() end })
+  T.eq(vim.api.nvim_win_get_config(0).title[1][1], " C Comments ")
+  vim.api.nvim_win_close(0, true)
+  hn.setup({ icons = { statusline = "" } })
+  T.eq(hn.statusline(), "1")
+  T.eq(ui._callout("note")[1][2][1], "💬 note", "omitted icons use defaults")
+  hn.setup({ icons = false })
+  T.eq(hn.statusline(), "1")
+  T.eq(ui._callout("note")[1][2][1], "note")
+  ui.decorate(id)
+  marks = vim.api.nvim_buf_get_extmarks(b, comments.ns, 0, -1, { details = true })
+  for _, m in ipairs(marks) do T.eq(m[4].sign_text, nil) end
+  ui.undecorate(id)
+  ui.comment_list({ edit = function() end, delete = function() end })
+  local title = vim.api.nvim_win_get_config(0).title
+  T.eq(title[1][1], " Comments ")
+  vim.api.nvim_win_close(0, true)
+  hn.setup({ icons = true })
+  T.eq(hn.statusline(), "● 1")
+  T.eq(ui._callout("note")[1][2][1], "💬 note")
+end)
+
+T.test("init: setup rejects invalid icon values", function()
+  for _, icons in ipairs({ "bad", { comment = 1 }, { sign = "wide" }, { comment = "a\nb" } }) do
+    T.ok(not pcall(hn.setup, { icons = icons, keymaps = false }))
+  end
+  hn.setup({ icons = true })
+end)
+
 T.test("init: ref_range sends a bare citation, never submits, keeps comments", function()
   comments.clear()
   local b = vim.api.nvim_create_buf(false, true)

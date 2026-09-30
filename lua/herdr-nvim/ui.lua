@@ -1,6 +1,7 @@
 local M = {}
 local comments = require("herdr-nvim.comments")
 local agents = require("herdr-nvim.agents")
+local icons = require("herdr-nvim.icons")
 
 -- An annotated block is drawn as three cooperating layers:
 --   * a solid amber rail in the SIGN COLUMN, one cell per line of the block
@@ -44,7 +45,7 @@ end
 -- sitting under its block reads as a label for whatever code follows it.
 -- The corner opens downward (╭─) into the rail beneath it.
 function M._callout(text)
-  return { { { "╭─ ", "HerdrNvimCommentSign" }, { "💬 " .. text, "HerdrNvimCommentText" } } }
+  return { { { "╭─ ", "HerdrNvimCommentSign" }, { icons.prefix("comment") .. text, "HerdrNvimCommentText" } } }
 end
 
 function M.decorate(id)
@@ -59,7 +60,7 @@ function M.decorate(id)
   local bars = {}
   for line = c.start_line, c.end_line do
     bars[#bars + 1] = vim.api.nvim_buf_set_extmark(c.bufnr, ns, line - 1, 0, {
-      sign_text = "▌",
+      sign_text = icons.get("sign") ~= "" and icons.get("sign") or nil,
       sign_hl_group = "HerdrNvimCommentSign",
       line_hl_group = "HerdrNvimCommentLine",
       right_gravity = false,
@@ -120,7 +121,7 @@ function M.comment_list(handlers)
       col = math.max(0, math.floor((vim.o.columns - width) / 2)),
       style = "minimal",
       border = "rounded",
-      title = { { " 💬 Comments ", "HerdrNvimCommentText" } },
+      title = { { " " .. icons.prefix("comment") .. "Comments ", "HerdrNvimCommentText" } },
       title_pos = "center",
       footer = { { " ↑↓ jump  ·  ⏎ edit  ·  d delete  ·  q close ", "Comment" } },
       footer_pos = "center",

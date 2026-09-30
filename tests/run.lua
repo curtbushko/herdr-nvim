@@ -1,5 +1,8 @@
 -- Minimal test harness. Run: nvim --headless --noplugin -u NONE -l tests/run.lua
 local root = vim.fs.dirname(vim.fs.dirname(debug.getinfo(1, "S").source:sub(2)))
+-- Neovim's runtimepath loader runs before package.path (including plugins
+-- bundled by a Nix wrapper). Always test this checkout, not an installed copy.
+vim.opt.runtimepath:prepend(root)
 package.path = root .. "/lua/?.lua;" .. root .. "/lua/?/init.lua;" .. package.path
 
 _G.T = { _tests = {} }

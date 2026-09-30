@@ -4,8 +4,9 @@ local prompt = require("herdr-nvim.prompt")
 local agents = require("herdr-nvim.agents")
 local dispatch = require("herdr-nvim.dispatch")
 local ui = require("herdr-nvim.ui")
+local icons = require("herdr-nvim.icons")
 
-M.config = { prefix = "<leader>a", keymaps = true, clear_after_send = true }
+M.config = { prefix = "<leader>a", keymaps = true, clear_after_send = true, icons = vim.deepcopy(icons.defaults) }
 
 local function map(mode, lhs, rhs, desc)
   if vim.fn.maparg(vim.api.nvim_replace_termcodes(lhs, true, true, true), mode) ~= "" then
@@ -16,7 +17,10 @@ local function map(mode, lhs, rhs, desc)
 end
 
 function M.setup(config)
-  M.config = vim.tbl_deep_extend("force", M.config, config or {})
+  config = vim.deepcopy(config or {})
+  if config.icons ~= nil then config.icons = icons.resolve(config.icons) end
+  M.config = vim.tbl_deep_extend("force", M.config, config)
+  icons.configure(M.config.icons)
   -- Ensure :Herdr is registered (also done from plugin/herdr-nvim.lua).
   require("herdr-nvim.commands").register()
   -- Default keymaps stay opt-out (keymaps = true) for backward compatibility.
@@ -196,7 +200,7 @@ end
 
 function M.statusline()
   local n = #comments.list()
-  return n == 0 and "" or ("● " .. n)
+  return n == 0 and "" or (icons.prefix("statusline") .. n)
 end
 
 return M

@@ -62,6 +62,38 @@ description = "open file from agent output"
 { "ChmaraX/herdr-nvim", opts = {} }
 ```
 
+### Nix
+
+This repo is a flake input; no `flake = false` is needed:
+
+```nix
+inputs.herdr-nvim = {
+  url = "github:curtbushko/herdr-nvim";
+  inputs.nixpkgs.follows = "nixpkgs";
+};
+```
+
+In a Home Manager module with `inputs` passed through `extraSpecialArgs`:
+
+```nix
+{ inputs, pkgs, ... }:
+{
+  programs.neovim.plugins = [
+    inputs.herdr-nvim.packages.${pkgs.stdenv.hostPlatform.system}.nvim-plugin
+  ];
+  # Optional: the Rust sidebar/picker CLI.
+  home.packages = [
+    inputs.herdr-nvim.packages.${pkgs.stdenv.hostPlatform.system}.herdr-nvim
+  ];
+}
+```
+
+`packages.<system>.default` is the Neovim plugin. An optional
+`overlays.default` exposes `pkgs.vimPlugins.herdr-nvim` and `pkgs.herdr-nvim`.
+The CLI package includes the Lua runtime for its sidebar daemon. It does not
+register herdr actions automatically; install/link the herdr plugin and bind
+its actions as above.
+
 ## The sidebar
 
 `prefix+e` toggles it. Each tab gets its own nvim, backed by a headless
@@ -184,6 +216,39 @@ require("herdr-nvim").setup({
   prefix = "<leader>a",     -- keymap prefix
   keymaps = true,           -- set false to define your own
   clear_after_send = true,  -- comments are ephemeral by design
+  icons = {
+    comment = "💬",        -- callout and comment-list title
+    sign = "▌",            -- sign-column rail (at most two display cells)
+    statusline = "●",      -- pending-comment indicator
+  },
+})
+```
+
+Override any icon with a string (including Nerd Font glyphs). Omitted keys
+use the defaults; `""` hides an individual icon. Set `icons = false` to hide
+all three, or `icons = true` to restore defaults. Disabling icons keeps the
+callout text, line tint, and statusline count. New decorations use the updated
+icons; existing decorations retain theirs until edited or recreated.
+
+### Custom icon example
+
+For Nerd Font icons (requires a Nerd Font in your terminal):
+
+```lua
+require("herdr-nvim").setup({
+  icons = {
+    comment = "󰅺",    -- comment callout and list title
+    sign = "▎",       -- rail beside annotated lines
+    statusline = "󰅺", -- e.g. "󰅺 3" for three pending comments
+  },
+})
+```
+
+For plain-text markers instead:
+
+```lua
+require("herdr-nvim").setup({
+  icons = { comment = "#", sign = "|", statusline = "*" },
 })
 ```
 
@@ -229,6 +294,10 @@ did not start. Make sure that `sidebar.nvim_bin` points at a working nvim ≥
 ## Tests
 
 ```sh
-just ci    # cargo fmt + cargo test + headless Lua suite
+nix develop       # Rust, Neovim, just, and native build dependencies
+just ci           # cargo fmt + cargo test + headless Lua suite
+nix flake check   # builds both packages and runs Rust/Lua tests
 ```
-test
+
+The development shell and packages support Linux on x86_64/AArch64 and
+macOS on AArch64 (the pinned nixpkgs no longer supports Intel macOS). Dependencies are pinned in `flake.lock`.
